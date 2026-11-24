@@ -7,13 +7,18 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=3" />
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=3" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=3" />
-  <meta name="theme-color" content="#e8528a" />
+  <meta name="theme-color" content="#e8528a" id="tc" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fredoka:wght@600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fredoka:wght@600&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=10" />
   <script>
-    // Apply the saved theme before the page paints (no flash)
-    try { document.documentElement.dataset.theme = localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'; } catch (e) {}
+    // Apply the saved mode (light / dark / system) and accent color before the page paints (no flash)
+    try {
+      var m = localStorage.getItem('theme') || 'light', r = document.documentElement;
+      r.dataset.theme = m === 'dark' || (m === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+      var a = localStorage.getItem('accent');
+      if (a) { r.dataset.accent = '1'; r.style.setProperty('--acc', a); }
+    } catch (e) {}
   </script>
   <script>
     // Shows any JavaScript error on the page
@@ -26,6 +31,24 @@
 </head>
 <body>
   <div class="floaties" aria-hidden="true"><span>♥</span><span>✦</span><span>♡</span><span>✧</span><span>♥</span><span>✦</span><span>♡</span><span>✧</span><span>♥</span><span>✦</span></div>
+  <header class="land-nav" id="land-nav">
+    <a class="nav-logo" href="#" data-go="top" aria-label="todo home"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="mkg3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffa9c8"/><stop offset="1" stop-color="#e8528a"/></linearGradient></defs><rect x="4" y="6" width="56" height="54" rx="21" fill="url(#mkg3)"/><ellipse cx="18" cy="39" rx="6" ry="4" fill="#ffd3e3" opacity=".85"/><ellipse cx="46" cy="39" rx="6" ry="4" fill="#ffd3e3" opacity=".85"/><g class="eyes"><ellipse cx="23" cy="31" rx="3.2" ry="4.2" fill="#3b2430"/><ellipse cx="41" cy="31" rx="3.2" ry="4.2" fill="#3b2430"/><circle cx="24.2" cy="29.4" r="1.2" fill="#fff"/><circle cx="42.2" cy="29.4" r="1.2" fill="#fff"/></g><path d="M27 39.5q5 5 10 0" fill="none" stroke="#3b2430" stroke-width="2.6" stroke-linecap="round"/><circle cx="52" cy="13" r="10" fill="#fff"/><path d="M47 13.4l3.6 3.6 6.4-7" fill="none" stroke="#e8528a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span>todo<i>.</i></span></a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#about" data-sec="about">About</a>
+      <a href="#contact" data-sec="contact">Contact us</a>
+      <a href="#features" data-sec="features">Features</a>
+      <button type="button" class="nav-login" id="nav-login">Login account</button>
+    </nav>
+  </header>
+  <div class="deco" aria-hidden="true">
+    <div class="dk dk1"><span class="dk-c"></span><b>Plan the week</b><em>Done</em></div>
+    <div class="dk dk2"><div class="ring"><svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="15" class="r0"/><circle cx="18" cy="18" r="15" class="r1"/></svg><b>75%</b></div><small>Weekly progress</small></div>
+    <div class="dk dk3"><b>♥ Nice work!</b><small>You finished 3 tasks today</small></div>
+    <div class="dk dk4"><span class="flame">✦</span><b>5-day streak</b></div>
+    <div class="dk dk5"><div class="mini-cal"><i></i><i></i><i></i><i></i><i></i><i></i><i class="t"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><small>Due dates &amp; calendar</small></div>
+    <div class="dk dk6"><span class="dk-c on"></span><b>Book the venue</b><em class="stk">Stuck</em></div>
+  </div>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e8528a" stop-opacity="0.35"/><stop offset="1" stop-color="#e8528a" stop-opacity="0"/></linearGradient></defs></svg>
   <main id="auth" class="auth">
     <h1 class="logo" aria-label="todo">
       <span class="mark-wrap"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="mkg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffa9c8"/><stop offset="1" stop-color="#e8528a"/></linearGradient></defs><rect x="4" y="6" width="56" height="54" rx="21" fill="url(#mkg)"/><ellipse cx="18" cy="39" rx="6" ry="4" fill="#ffd3e3" opacity=".85"/><ellipse cx="46" cy="39" rx="6" ry="4" fill="#ffd3e3" opacity=".85"/><g class="eyes"><ellipse cx="23" cy="31" rx="3.2" ry="4.2" fill="#3b2430"/><ellipse cx="41" cy="31" rx="3.2" ry="4.2" fill="#3b2430"/><circle cx="24.2" cy="29.4" r="1.2" fill="#fff"/><circle cx="42.2" cy="29.4" r="1.2" fill="#fff"/></g><path d="M27 39.5q5 5 10 0" fill="none" stroke="#3b2430" stroke-width="2.6" stroke-linecap="round"/><circle cx="52" cy="13" r="10" fill="#fff"/><path d="M47 13.4l3.6 3.6 6.4-7" fill="none" stroke="#e8528a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><b class="sp s1">✦</b><b class="sp s2">✦</b><b class="sp s3">♥</b></span>
@@ -55,24 +78,154 @@
       <button type="submit" class="btn wide">Create account</button>
     </form>
     <p id="auth-msg" class="msg" role="alert"></p>
+    <a href="#about" class="about-link">New here? See how it works ↓</a>
   </main>
+
+  <div class="about">
+    <section class="l-sec" id="about" aria-labelledby="about-h">
+      <div class="a-hero rv">
+        <span class="eyebrow">About todo.</span>
+        <h2 id="about-h">Plan it. Do it. Celebrate it.</h2>
+        <p>todo. is a cheerful task manager for everyday life. Put your work on boards, group it, set due dates, attach photos and files, and watch the progress bars fill up. Finish tasks to build a daily streak. It works on your phone, tablet and computer, in light or dark mode, in the color you like.</p>
+      </div>
+
+      <div class="demo-wrap rv">
+        <div class="demo" aria-hidden="true">
+          <div class="demo-bar"><i></i><i></i><i></i><b>Main board</b><span>Table · Board · Calendar</span></div>
+          <div class="demo-body">
+            <div class="dr" style="--d:0s;--w:100%"><span class="dc"></span><b>Plan the week</b><span class="mk-p" style="--c:#3fa57c">Done</span><span class="dm"><i></i></span></div>
+            <div class="dr" style="--d:1.4s;--w:100%"><span class="dc"></span><b>Design the poster</b><span class="mk-p" style="--c:#3fa57c">Done</span><span class="dm"><i></i></span></div>
+            <div class="dr" style="--d:2.8s;--w:100%"><span class="dc"></span><b>Buy supplies</b><span class="mk-p" style="--c:#3fa57c">Done</span><span class="dm"><i></i></span></div>
+            <div class="dr" style="--d:4.2s;--w:100%"><span class="dc"></span><b>Send the invites</b><span class="mk-p" style="--c:#3fa57c">Done</span><span class="dm"><i></i></span></div>
+            <div class="demo-foot"><span>Today's progress</span><div class="dm big"><i></i></div></div>
+          </div>
+          <span class="fb fb1">♥ Task done!</span>
+          <span class="fb fb2">✦ 5-day streak</span>
+          <span class="fb fb3">Due today</span>
+        </div>
+      </div>
+
+      <div class="why">
+        <div class="why-c rv" style="--rd:0s"><div class="wi"><svg viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16" rx="4"/><path d="M8 9h8M8 13h5"/></svg></div><b>Stay organized</b><span>Boards, groups, subitems and due dates keep every project in its place, so nothing slips through.</span></div>
+        <div class="why-c rv" style="--rd:.12s"><div class="wi"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.4-9-9.2C1.5 8 4 5 7 5c2 0 3.4 1.1 5 3 1.6-1.9 3-3 5-3 3 0 5.500 3 4 6.800-2 4.800-9 9.200-9 9.200z"/></svg></div><b>Stay motivated</b><span>Progress bars, a daily streak and little celebrations make finishing tasks feel good.</span></div>
+        <div class="why-c rv" style="--rd:.24s"><div class="wi"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="13" height="10" rx="2"/><rect x="14" y="9" width="7" height="11" rx="2"/></svg></div><b>Stay anywhere</b><span>Use it on your phone, tablet or computer. Your tasks are saved to your account and follow you.</span></div>
+      </div>
+      <p class="for rv">Made for students, freelancers, small teams, families and anyone with a busy list.</p>
+
+      <h3 class="rv">How it works</h3>
+      <ol class="steps">
+        <li class="rv" style="--rd:0s"><b>Create your account</b><span>Pick “Create account” above, choose a strong password, and log in.</span></li>
+        <li class="rv" style="--rd:.1s"><b>Make a board and add items</b><span>Use “New board” in the menu, then “New item” or type in the “+ Add item” row and press Enter.</span></li>
+        <li class="rv" style="--rd:.2s"><b>Update as you go</b><span>Change status, priority and due date right in the row. Click an item to add notes, subitems, photos and files. Paste with Ctrl+V or drag files in.</span></li>
+        <li class="rv" style="--rd:.3s"><b>Finish and review</b><span>Mark items Done to move them to Completed, then open Productivity to see your streak and what is due next.</span></li>
+      </ol>
+    </section>
+
+    <section class="l-sec" id="features" aria-labelledby="feat-h">
+      <div class="a-hero rv">
+        <span class="eyebrow">Features</span>
+        <h2 id="feat-h">Everything you need to get it done</h2>
+        <p>Simple enough for a shopping list, strong enough for a whole project.</p>
+      </div>
+      <div class="a-grid">
+        <figure class="a-card rv" style="--rd:0s">
+          <div class="mk" aria-hidden="true">
+            <div class="mk-r"><b>Plan the week</b><span class="mk-p" style="--c:#3fa57c">Done</span><span class="mk-m"><i style="--w:100%"></i></span></div>
+            <div class="mk-r"><b>Design the poster</b><span class="mk-p" style="--c:#e0a030">In progress</span><span class="mk-m"><i style="--w:60%"></i></span></div>
+            <div class="mk-r"><b>Book the venue</b><span class="mk-p" style="--c:#d2475f">Stuck</span><span class="mk-m"><i style="--w:25%"></i></span></div>
+            <div class="mk-r"><b>Buy supplies</b><span class="mk-p" style="--c:#9a9aa5">Not started</span><span class="mk-m"><i style="--w:0%"></i></span></div>
+          </div>
+          <figcaption><b>Boards, groups and subitems</b>Give every project its own board. Inside, group items, set status, priority and due date, and break big tasks into subitems.</figcaption>
+        </figure>
+        <figure class="a-card rv" style="--rd:.12s">
+          <div class="mk cols" aria-hidden="true">
+            <div class="mk-c" style="--c:#9a9aa5"><i style="height:22px"></i><i class="drag" style="height:30px"></i></div>
+            <div class="mk-c" style="--c:#e0a030"><i style="height:30px"></i><i style="height:20px"></i><i style="height:22px"></i></div>
+            <div class="mk-c" style="--c:#3fa57c"><i style="height:24px"></i></div>
+          </div>
+          <figcaption><b>Table, board, calendar</b>See the same tasks as a table, a Kanban board you can drag cards across, or a calendar. Hide finished tasks and find them later on the Completed page.</figcaption>
+        </figure>
+        <figure class="a-card rv" style="--rd:.24s">
+          <div class="mk chart" aria-hidden="true">
+            <span class="mk-b">5-day streak</span>
+            <i style="--h:30%"></i><i style="--h:55%"></i><i style="--h:40%"></i><i style="--h:75%"></i><i style="--h:60%"></i><i style="--h:90%"></i><i style="--h:70%"></i>
+          </div>
+          <figcaption><b>Productivity at a glance</b>Daily and weekly stats, a streak that grows when you finish tasks, upcoming deadlines, and a little cheer when you tick something off.</figcaption>
+        </figure>
+      </div>
+
+      <div class="tiles">
+        <div class="tile rv" style="--rd:0s"><div class="wi"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="2"/><rect x="3" y="11" width="18" height="5" rx="2"/><path d="M3 19h10"/></svg></div><b>Multiple boards</b><span>One board per project, saved until you delete it.</span></div>
+        <div class="tile rv" style="--rd:.06s"><div class="wi"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/></svg></div><b>Kanban drag and drop</b><span>Move cards between Not started, In progress, Stuck and Done.</span></div>
+        <div class="tile rv" style="--rd:.12s"><div class="wi"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg></div><b>Calendar</b><span>See what is due each day of the month.</span></div>
+        <div class="tile rv" style="--rd:.18s"><div class="wi"><svg viewBox="0 0 24 24"><path d="M21 12.500l-8.500 8.500a5.500 5.500 0 0 1-8-8l9-9a3.700 3.700 0 0 1 5.200 5.200l-9 9a1.800 1.800 0 0 1-2.600-2.600l8-8"/></svg></div><b>Photos and files</b><span>Attach pictures, PDFs and Office files up to 5 MB. Paste or drag them in.</span></div>
+        <div class="tile rv" style="--rd:.24s"><div class="wi bell"><svg viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l1.500 2h-15zM10 21h4"/></svg></div><b>Reminders</b><span>Get told about tasks due today and the ones that are overdue.</span></div>
+        <div class="tile rv" style="--rd:.30s"><div class="wi"><svg viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-7"/></svg></div><b>Streaks and stats</b><span>Daily and weekly numbers that grow as you finish tasks.</span></div>
+        <div class="tile rv" style="--rd:.36s"><div class="wi"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.500-4 4.500-5.500 8-5.500s6.500 1.500 8 5.500"/></svg></div><b>Your profile</b><span>Add a name, bio and profile photo to make it yours.</span></div>
+        <div class="tile rv" style="--rd:.42s"><div class="wi"><svg viewBox="0 0 24 24"><path d="M21 12.800A9 9 0 1 1 11.200 3a7 7 0 0 0 9.800 9.800z"/></svg></div><b>Dark mode and colors</b><span>Light, dark or automatic, in the accent color you like.</span><div class="sw"><i style="--s:#e8528a"></i><i style="--s:#f08a4b"></i><i style="--s:#3fa57c"></i><i style="--s:#6b7bd6"></i></div></div>
+      </div>
+    </section>
+
+    <section class="l-sec" id="contact" aria-labelledby="contact-h">
+      <div class="contact">
+        <div class="c-info rv">
+          <span class="eyebrow">Contact us</span>
+          <h2 id="contact-h">We would love to hear from you</h2>
+          <p>Have a question, an idea for a new feature, or found something that is not working? Send us a message and we will read it.</p>
+          <ul class="c-list">
+            <li><span>?</span>Questions about how todo. works</li>
+            <li><span>✦</span>Ideas and feature requests</li>
+            <li><span>!</span>Problems and bug reports</li>
+          </ul>
+          <svg class="plane" viewBox="0 0 64 64" aria-hidden="true"><path d="M6 30L58 8 44 54 31 38z" fill="currentColor" opacity=".18"/><path d="M6 30L58 8 44 54 31 38zM31 38L58 8" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        </div>
+        <form id="contact-form" class="c-form rv" style="--rd:.12s" novalidate>
+          <label>Your name <input type="text" id="c-name" maxlength="80" required autocomplete="name" /></label>
+          <label>Email <input type="email" id="c-email" maxlength="120" required autocomplete="email" /></label>
+          <label>Message <textarea id="c-msg" rows="4" maxlength="1000" required></textarea></label>
+          <input type="text" id="c-trap" class="trap" tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <button type="submit" class="btn wide" id="c-send">Send message</button>
+          <p id="c-note" class="msg" role="status"></p>
+        </form>
+      </div>
+    </section>
+
+    <section class="cta rv">
+      <h3>Ready to get things done?</h3>
+      <p>Create your account and start your first board in a minute.</p>
+      <button type="button" class="btn" id="cta-go">Create my account</button>
+    </section>
+
+    <footer class="l-foot"><span>todo<i>.</i></span> Plan it. Do it. Celebrate it. <a href="#" data-go="top">Back to top ↑</a></footer>
+  </div>
 
   <section id="app" hidden>
     <div class="shell">
       <aside class="side">
-        <div class="logo"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="mkg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffa9c8"/><stop offset="1" stop-color="#e8528a"/></linearGradient></defs><rect x="4" y="6" width="56" height="54" rx="21" fill="url(#mkg2)"/><ellipse cx="18" cy="39" rx="6" ry="4" fill="#ffd3e3" opacity=".85"/><ellipse cx="46" cy="39" rx="6" ry="4" fill="#ffd3e3" opacity=".85"/><g class="eyes"><ellipse cx="23" cy="31" rx="3.2" ry="4.2" fill="#3b2430"/><ellipse cx="41" cy="31" rx="3.2" ry="4.2" fill="#3b2430"/><circle cx="24.2" cy="29.4" r="1.2" fill="#fff"/><circle cx="42.2" cy="29.4" r="1.2" fill="#fff"/></g><path d="M27 39.5q5 5 10 0" fill="none" stroke="#3b2430" stroke-width="2.6" stroke-linecap="round"/><circle cx="52" cy="13" r="10" fill="#fff"/><path d="M47 13.4l3.6 3.6 6.4-7" fill="none" stroke="#e8528a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>todo</div>
+        <div class="logo"><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="mkg2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffa9c8"/><stop offset="1" stop-color="#e8528a"/></linearGradient></defs><rect x="4" y="6" width="56" height="54" rx="21" fill="url(#mkg2)"/><ellipse cx="18" cy="39" rx="6" ry="4" fill="#ffd3e3" opacity=".85"/><ellipse cx="46" cy="39" rx="6" ry="4" fill="#ffd3e3" opacity=".85"/><g class="eyes"><ellipse cx="23" cy="31" rx="3.2" ry="4.2" fill="#3b2430"/><ellipse cx="41" cy="31" rx="3.2" ry="4.2" fill="#3b2430"/><circle cx="24.2" cy="29.4" r="1.2" fill="#fff"/><circle cx="42.2" cy="29.4" r="1.2" fill="#fff"/></g><path d="M27 39.5q5 5 10 0" fill="none" stroke="#3b2430" stroke-width="2.6" stroke-linecap="round"/><circle cx="52" cy="13" r="10" fill="#fff"/><path d="M47 13.4l3.6 3.6 6.4-7" fill="none" stroke="#e8528a" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="lbl">todo</span></div>
+        <div class="side-top">
         <p class="side-h">Boards</p>
         <nav id="boards" class="side-nav"></nav>
-        <button type="button" id="new-board" class="link add-b">+ New board</button>
+        <button type="button" id="new-board" class="link add-b"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><em class="lbl">New board</em></button>
+        </div>
+        <div class="side-scroll">
         <p class="side-h">Filters</p>
         <nav class="side-nav">
-          <button type="button" class="nav-i" data-sf="all">All items <span id="cnt-all">0</span></button>
-          <button type="button" class="nav-i" data-sf="todo">Not started <span id="cnt-todo">0</span></button>
-          <button type="button" class="nav-i" data-sf="working">In progress <span id="cnt-working">0</span></button>
-          <button type="button" class="nav-i" data-sf="stuck">Stuck <span id="cnt-stuck">0</span></button>
-          <button type="button" class="nav-i" data-sf="done">Done <span id="cnt-done">0</span></button>
-          <button type="button" class="nav-i" data-sf="late">Overdue <span id="cnt-late">0</span></button>
+          <button type="button" class="nav-i" data-sf="all"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg><em class="lbl">All items</em> <span id="cnt-all">0</span></button>
+          <button type="button" class="nav-i" data-sf="todo"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg><em class="lbl">Not started</em> <span id="cnt-todo">0</span></button>
+          <button type="button" class="nav-i" data-sf="working"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg><em class="lbl">In progress</em> <span id="cnt-working">0</span></button>
+          <button type="button" class="nav-i" data-sf="stuck"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.01"/></svg><em class="lbl">Stuck</em> <span id="cnt-stuck">0</span></button>
+          <button type="button" class="nav-i" data-sf="done"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/></svg><em class="lbl">Done</em> <span id="cnt-done">0</span></button>
+          <button type="button" class="nav-i" data-sf="late"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M4 10h16M9 3v4M15 3v4"/></svg><em class="lbl">Overdue</em> <span id="cnt-late">0</span></button>
         </nav>
+        <p class="side-h">More</p>
+        <nav class="side-nav">
+          <button type="button" class="nav-i" data-page="done"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg><em class="lbl">Completed</em> <span id="cnt-doneall">0</span></button>
+          <button type="button" class="nav-i" data-page="prod"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V11M12 20V5M19 20v-7"/></svg><em class="lbl">Productivity</em></button>
+          <button type="button" class="nav-i" data-page="profile"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-5.5 8-5.5s6.5 1.5 8 5.5"/></svg><em class="lbl">Profile</em></button>
+          <button type="button" class="nav-i" data-page="settings"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg><em class="lbl">Settings</em></button>
+        </nav>
+        </div>
         <div class="me">
           <i class="avatar" id="avatar">?</i>
           <b id="hello"></b>
@@ -85,9 +238,14 @@
       </aside>
 
       <div class="main">
+        <div class="topbar"><button type="button" id="menu-btn" class="menu-btn" aria-label="Open menu"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button><b id="tb-title">Main board</b></div>
+        <div id="board-page">
         <header class="head">
-          <h1 id="title">Main board</h1>
-          <button type="button" id="new-item" class="btn">New item</button>
+          <div class="hgroup">
+            <h1 id="title" class="crumb">Main board</h1>
+            <h2 class="welcome">Welcome back,<em id="wname"></em></h2>
+          </div>
+          <div class="hbtns"><button type="button" id="del-board" class="ghost">Delete board</button><button type="button" id="new-item" class="btn">New item</button></div>
         </header>
         <div id="stats" class="stats"></div>
         <div class="bar">
@@ -97,11 +255,14 @@
             <button type="button" class="vt" data-view="cal">Calendar</button>
             <button type="button" class="vt" data-view="dash">Overview</button>
           </div>
-          <input type="search" id="search" placeholder="Search tasks" />
+          <div class="bar-r"><button type="button" id="hide-done" class="chk" aria-pressed="true">Hide completed</button><input type="search" id="search" placeholder="Search tasks" /></div>
         </div>
         <div id="view"></div>
+        </div>
+        <div id="page" class="page" hidden></div>
       </div>
     </div>
+    <div id="scrim" class="scrim"></div>
 
     <aside id="panel" class="panel" hidden>
       <div class="panel-h"><b id="p-head">Item details</b><button type="button" id="p-close" class="x2" aria-label="Close">×</button></div>
@@ -138,6 +299,6 @@
 
   <div id="toast" class="toast" role="status"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
