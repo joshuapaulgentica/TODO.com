@@ -23,6 +23,8 @@ let boardList = [];
 let profile = null;
 let avatarUrl = '';
 let myEmail = '';
+let socialUrl = ''; // profile picture from Google / Facebook (used until you upload your own)
+let myProviders = []; // how this account signs in: email, google, facebook
 let needsSql = false;
 let warnedSql = false;
 const AV_BUCKET = BUCKET; // profile photos live in the same private bucket as task files (folder = your user id)
@@ -54,6 +56,13 @@ async function api(action, data = {}) {
       const { data: d, error } = await sb.auth.signInWithPassword({ email: data.email.trim().toLowerCase(), password: data.password });
       if (error) throw error;
       return { name: nameOf(d.user) };
+    }
+    if (action === 'oauth') {
+      // Sends the visitor to Google / Facebook, which sends them back to this page signed in
+      const back = location.origin + location.pathname.replace(/index\.html$/, '');
+      const { error } = await sb.auth.signInWithOAuth({ provider: data.provider, options: { redirectTo: back, queryParams: data.provider === 'google' ? { prompt: 'select_account' } : undefined } });
+      if (error) throw error;
+      return { ok: true };
     }
     if (action === 'logout') { await sb.auth.signOut(); return { ok: true }; }
     if (action === 'me') {
@@ -179,7 +188,8 @@ async function api(action, data = {}) {
       const { data: p } = await sb.from('profiles').select('*').maybeSingle();
       let url = '';
       if (p && p.avatar_path) { const sg = await sb.storage.from(AV_BUCKET).createSignedUrl(p.avatar_path, 3600); url = (sg.data && sg.data.signedUrl) || ''; }
-      return { profile: p, url, email: u.user.email };
+      const md = u.user.user_metadata || {};
+      return { profile: p, url, email: u.user.email || '', social: md.avatar_url || md.picture || '', providers: (u.user.app_metadata && u.user.app_metadata.providers) || [] };
     }
     if (action === 'saveprofile') {
       const { data: u } = await sb.auth.getUser();
@@ -281,6 +291,26 @@ $('#register-form').addEventListener('submit', async (e) => {
     showApp(r.name);
   } catch (err) { $('#auth-msg').textContent = err.message; }
 });
+
+/* ---------- Google and Facebook sign-in ---------- */
+const socialBtns = () => document.querySelectorAll('.sbtn');
+socialBtns().forEach((b) => b.addEventListener('click', async () => {
+  const provider = b.dataset.provider, label = provider === 'google' ? 'Google' : 'Facebook';
+  if (location.protocol === 'file:') { $('#auth-msg').textContent = label + ' sign-in only works on your website address (http or https), not when the file is opened from your computer.'; return; }
+  socialBtns().forEach((x) => { x.disabled = true; });
+  $('#auth-msg').textContent = 'Opening ' + label + '...';
+  try { await api('oauth', { provider }); } catch (err) { socialBtns().forEach((x) => { x.disabled = false; }); $('#auth-msg').textContent = err.message; }
+}));
+window.addEventListener('pageshow', (e) => { if (e.persisted) { socialBtns().forEach((x) => { x.disabled = false; }); $('#auth-msg').textContent = ''; } });
+
+// If Google / Facebook sent the visitor back with an error, show it on the login card
+const oauthError = (() => {
+  const q = new URLSearchParams(location.search), f = new URLSearchParams(location.hash.slice(1));
+  const raw = q.get('error_description') || f.get('error_description') || q.get('error') || f.get('error');
+  if (!raw) return '';
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  return 'Sign-in did not finish: ' + raw + (/email/i.test(raw) ? ' (Facebook may not have shared an email address. Use an account with an email, or sign up with email.)' : '');
+})();
 
 $('#logout').addEventListener('click', async () => {
   await api('logout', {});
@@ -867,10 +897,12 @@ async function setNotif(on) {
 setInterval(checkReminders, 15 * 60 * 1000);
 
 /* ---------- Profile ---------- */
+const cssUrl = (u) => u.replace(/[()'"\\\s]/g, (c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'));
 function paintAvatar(el) {
-  el.style.backgroundImage = avatarUrl ? `url("${avatarUrl}")` : '';
-  el.classList.toggle('img', !!avatarUrl);
-  el.textContent = avatarUrl ? '' : initial();
+  const u = avatarUrl || socialUrl;
+  el.style.backgroundImage = u ? `url("${cssUrl(u)}")` : '';
+  el.classList.toggle('img', !!u);
+  el.textContent = u ? '' : initial();
 }
 function applyIdentity() {
   $('#hello').textContent = myName;
@@ -883,6 +915,8 @@ async function loadProfile() {
     profile = r.profile || {};
     avatarUrl = r.url || '';
     myEmail = r.email || '';
+    socialUrl = r.social || '';
+    myProviders = r.providers || [];
     if (profile.full_name) myName = profile.full_name;
     if (r.profile) applyAccent(profile.accent || null, false);
     if (r.profile && profile.notifications != null) notifOn = !!profile.notifications && 'Notification' in window && Notification.permission === 'granted';
@@ -1010,7 +1044,7 @@ function profileHtml() {
   return `<div class="pg-h"><h2>Profile</h2><p class="muted">Your photo and details.</p></div>
   <div class="pgrid">
     <section class="sec pcard">
-      <div class="pav ${avatarUrl ? 'img' : ''}" ${avatarUrl ? `style="background-image:url('${esc(avatarUrl)}')"` : ''}>${avatarUrl ? '' : esc(initial())}</div>
+      <div class="pav ${avatarUrl || socialUrl ? 'img' : ''}" ${avatarUrl || socialUrl ? `style="background-image:url('${esc(cssUrl(avatarUrl || socialUrl))}')"` : ''}>${avatarUrl || socialUrl ? '' : esc(initial())}</div>
       <div class="pbtns"><button type="button" class="btn sm" data-act="pickav">${avatarUrl ? 'Change photo' : 'Upload photo'}</button>${avatarUrl ? '<button type="button" class="link" data-act="rmav">Remove</button>' : ''}</div>
       <small class="muted">PNG, JPG, WEBP or GIF, up to 2 MB</small>
       <input type="file" id="av-input" hidden accept="image/png,image/jpeg,image/webp,image/gif" />
@@ -1028,6 +1062,8 @@ function profileHtml() {
   </div>`;
 }
 
+const canChangePw = () => !myProviders.length || myProviders.includes('email');
+const providerNames = () => myProviders.filter((p) => p !== 'email').map((p) => p[0].toUpperCase() + p.slice(1)).join(' and ') || 'a social account';
 const rulesHtml = (id) => `<ul id="${id}" class="rules" aria-live="polite"><li data-rule="len">At least 8 characters</li><li data-rule="upper">One uppercase letter (A-Z)</li><li data-rule="lower">One lowercase letter (a-z)</li><li data-rule="num">One number (0-9)</li><li data-rule="sym">One symbol, like @ # $ % * !</li></ul>`;
 function settingsHtml() {
   const mode = stored('theme') || 'light', acc = (stored('accent') || '').toLowerCase();
@@ -1046,13 +1082,13 @@ function settingsHtml() {
         <button type="button" class="tg" role="switch" aria-label="Due-date reminders" aria-checked="${notifOn}" data-act="notif"></button></div>
     </section>
     <section class="sec"><h3>Change password</h3>
-      <form id="pw-form" autocomplete="off">
+      ${canChangePw() ? `<form id="pw-form" autocomplete="off">
         <label>Current password <input type="password" id="pw-cur" required autocomplete="current-password" /></label>
         <label>New password <input type="password" id="pw-new" minlength="8" required autocomplete="new-password" /></label>
         ${rulesHtml('pw-rules2')}
         <label>Repeat new password <input type="password" id="pw-rep" required autocomplete="new-password" /></label>
         <button type="submit" class="btn">Update password</button>
-      </form></section>
+      </form>` : `<p class="muted">You signed in with ${providerNames()}, so your password is managed there. There is nothing to change here.</p>`}</section>
     <section class="sec"><h3>Account</h3>
       <div class="row"><span>Signed in as<small>${esc(myEmail || myName)}</small></span></div>
       <button type="button" class="ghost" data-act="logout">Log out</button>
@@ -1150,7 +1186,7 @@ setTimeout(() => $('#auth').classList.add('ready'), 3500); // after the intro, t
 (async () => {
   try {
     const r = await api('me');
-    if (r.name) showApp(r.name); else $('#auth-msg').textContent = 'Connected to Supabase ✓';
+    if (r.name) showApp(r.name); else $('#auth-msg').textContent = oauthError || 'Connected to Supabase ✓';
   } catch (err) { $('#auth-msg').textContent = err.message; }
 })();
 
