@@ -5,6 +5,15 @@ TODO app - what to do
    Then open the site and press Ctrl+F5 once so the new files load.
    (supabase.sql did not change in this update. If you already ran it, you do not need to run it again.)
 
+   NEW: the whole website now fits phones (iPhone and Android) as well as tablets and laptops.
+   It was checked at 320, 390, 412 and 768 pixels wide: no sideways scrolling, the top bar fits,
+   text boxes do not make iPhone zoom in, and the notch / home bar area is respected.
+   To use it like an app: in Safari tap Share > Add to Home Screen; in Chrome on Android tap
+   the menu > Add to Home screen.
+
+   "Forgot password?" on the login card. See step 4 below for the
+   one-time Supabase check that makes the reset email work.
+
 2. Google and Facebook buttons: one-time setup. The buttons are already on the login card,
    but they only work after you switch the two providers on in Supabase.
    They only work on your real website address (http or https), not when you open index.html
@@ -48,6 +57,38 @@ TODO app - what to do
      instead of the Change password form.
    - If a button shows a Supabase error page instead of Google or Facebook, that provider is
      not switched on yet (step 2B or 2C), or the Redirect URL in step 2A is missing.
+
+4. Forgot password: how it works and what to check
+   How it works for your visitors:
+   - On the login card they click "Forgot password?", type their email, and press "Send reset link".
+   - They get an email from Supabase. The link is valid for 1 hour and works once.
+   - The link opens your website on a "Choose a new password" card (same password rules as
+     Create account). After saving, they are logged in and their other devices are logged out.
+   - The "Send reset link" button waits 60 seconds before it can be pressed again.
+   - The message is the same whether or not the email has an account, so strangers cannot
+     use the form to find out who is registered.
+
+   One-time checks in Supabase (about 2 minutes):
+   A) Authentication > URL Configuration: the Site URL and Redirect URLs from step 2A must be
+      your real website address. If it is missing, the email link will send people to the wrong
+      page or show an error. (Add http://localhost too if you test on XAMPP.)
+   B) Authentication > Sign In / Providers > Email: must be ON.
+   C) Authentication > Email Templates > "Reset Password": the default works as is. You can
+      change the wording, but keep {{ .ConfirmationURL }} in it.
+   D) EMAIL LIMIT: Supabase's built-in email sender is only for testing and allows just a few
+      emails per hour for the whole project. For a real site, add your own email service:
+      Authentication > Emails > SMTP Settings (Brevo, Resend, Gmail SMTP, etc. have free plans).
+      If people see "email rate limit exceeded", this is the reason.
+
+   If something goes wrong:
+   - "That reset link has expired or was already used": ask for a new link.
+   - No email arrives: check spam, check that the email really has an account, and see D above.
+   - The link opens the login page instead of the new-password card: the Redirect URL in A is
+     missing or does not match your website address exactly.
+   - Reset does not work when index.html is opened from your computer. Use your website
+     address (http or https).
+   - People who only used Google or Facebook can also use "Forgot password?"; it simply lets
+     them add a password for email login too.
 
 Your Supabase URL and key are already in app.js.
 Contact form messages: Supabase > Table Editor > contact_messages.

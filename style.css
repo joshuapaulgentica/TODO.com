@@ -999,3 +999,62 @@ body.in .land-nav, body.in .deco { display: none; }
 .sbtn:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
 [data-theme="dark"] .sbtn { background: rgba(255, 255, 255, 0.06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); }
 @media (max-width: 380px) { .social { grid-template-columns: 1fr; } }
+
+
+/* Forgot / reset password */
+.forgot-row { margin: -0.3rem 0 1rem; text-align: right; }
+.forgot-row.center { margin: 0.9rem 0 0; text-align: center; }
+.text-btn { font-size: 13px; color: var(--acc); background: none; border: 0; padding: 0; cursor: pointer; }
+.text-btn:hover { text-decoration: underline; }
+.auth-h { margin: 0 0 0.3rem; font-size: 1.15rem; text-align: center; color: var(--ink); }
+.auth-sub { margin: 0 0 1.1rem; font-size: 13px; line-height: 1.5; text-align: center; color: var(--mute); }
+.btn:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+/* ===================== Phones and small screens (iOS + Android) ===================== */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { overflow-x: clip; -webkit-tap-highlight-color: transparent; }
+button, a, select, label, summary, [role="button"] { touch-action: manipulation; }
+img, svg, video, canvas { max-width: 100%; }
+
+/* Phones with a notch / rounded corners / home bar: keep content out of those areas */
+.land-nav { padding-top: calc(0.65rem + env(safe-area-inset-top, 0px)); padding-left: max(clamp(0.9rem, 4vw, 2.4rem), env(safe-area-inset-left, 0px)); padding-right: max(clamp(0.9rem, 4vw, 2.4rem), env(safe-area-inset-right, 0px)); }
+.main { padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); }
+.toast { margin-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* Browser bars on phones change height: dvh follows the visible screen, vh does not */
+@supports (height: 100dvh) {
+  .shell { min-height: 100dvh; }
+}
+
+@media (max-width: 900px) {
+  /* iPhone Safari zooms the whole page when you tap a box with text smaller than 16px */
+  input, textarea, select { font-size: 16px; }
+  input[type="checkbox"], input[type="radio"], input[type="range"], input[type="file"], input[type="color"] { font-size: inherit; }
+  /* Finger-sized tap targets */
+  .btn, .nav-i, .vt, .switch button, .text-btn, .link, .sbtn { min-height: 40px; }
+  .text-btn, .link { display: inline-flex; align-items: center; }
+}
+
+@media (max-width: 640px) {
+  .nav-logo .mark { width: 30px; height: 30px; }
+  .nav-links { gap: 0.7rem; min-width: 0; }
+  .land-nav { gap: 0.5rem; }
+}
+@media (max-width: 480px) {
+  .auth { margin-left: 0.8rem; margin-right: 0.8rem; padding: 2rem 1.3rem; border-radius: 26px; }
+  .auth .logo { font-size: 2.8rem; }
+}
+@media (max-width: 400px) {
+  .nl-more { display: none; }
+  .nav-links { gap: 0.55rem; }
+  .nav-links a { letter-spacing: 0; }
+  .land-nav { padding-left: max(0.7rem, env(safe-area-inset-left, 0px)); padding-right: max(0.7rem, env(safe-area-inset-right, 0px)); }
+}
+@media (max-width: 340px) {
+  .nav-links a { font-size: 9.5px; }
+  .nav-logo .mark { width: 26px; height: 26px; }
+}
+
+/* Decorative sparkles next to the logo must never push the page wider than the screen */
+.auth { overflow-x: clip; }
+@media (max-width: 480px) { .auth .s2 { right: -10px; } .auth .s3 { left: -10px; } }

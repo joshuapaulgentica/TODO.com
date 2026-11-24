@@ -35,6 +35,8 @@ const AV_BUCKET = BUCKET; // profile photos live in the same private bucket as t
 const SUPABASE_URL = 'https://cfadwunwdrkjhighrxwh.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_N4YKvlyib7YGOFBxcGL6Ww_5pHGlqd-';
 
+// Did the visitor arrive from the "reset password" email link? (checked before supabase-js tidies the address)
+let recovering = /type=recovery/.test(location.hash);
 const LIB_OK = !!(window.supabase && window.supabase.createClient);
 const sb = (SUPABASE_URL.includes('YOUR-PROJECT') || !LIB_OK) ? null : window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const nameOf = (u) => (u && u.user_metadata && (u.user_metadata.name || u.user_metadata.full_name)) || (u && u.email) || 'Friend';
@@ -63,6 +65,19 @@ async function api(action, data = {}) {
       const { error } = await sb.auth.signInWithOAuth({ provider: data.provider, options: { redirectTo: back, queryParams: data.provider === 'google' ? { prompt: 'select_account' } : undefined } });
       if (error) throw error;
       return { ok: true };
+    }
+    if (action === 'forgot') {
+      // Supabase emails a link that brings the person back to this page to choose a new password
+      const back = location.origin + location.pathname.replace(/index\.html$/, '');
+      const { error } = await sb.auth.resetPasswordForEmail(data.email.trim().toLowerCase(), { redirectTo: back });
+      if (error) throw error;
+      return { ok: true };
+    }
+    if (action === 'reset') {
+      const { data: d, error } = await sb.auth.updateUser({ password: data.next });
+      if (error) throw error;
+      try { await sb.auth.signOut({ scope: 'others' }); } catch (e) {} // log out other devices after a password reset
+      return { name: nameOf(d.user) };
     }
     if (action === 'logout') { await sb.auth.signOut(); return { ok: true }; }
     if (action === 'me') {
@@ -246,13 +261,20 @@ function toast(text) {
 }
 
 /* ---------- Login / register ---------- */
-function showTab(login) {
-  $('#login-form').hidden = !login;
-  $('#register-form').hidden = login;
-  $('#tab-login').classList.toggle('active', login);
-  $('#tab-register').classList.toggle('active', !login);
+function showAuthView(v) { // login | register | forgot | reset
+  $('#login-form').hidden = v !== 'login';
+  $('#register-form').hidden = v !== 'register';
+  $('#forgot-form').hidden = v !== 'forgot';
+  $('#reset-form').hidden = v !== 'reset';
+  const tabs = v === 'login' || v === 'register';
+  $('#auth-switch').hidden = !tabs;
+  $('#or-row').hidden = !tabs;
+  $('#social-row').hidden = !tabs;
+  $('#tab-login').classList.toggle('active', v === 'login');
+  $('#tab-register').classList.toggle('active', v === 'register');
   $('#auth-msg').textContent = '';
 }
+const showTab = (login) => showAuthView(login ? 'login' : 'register');
 $('#tab-login').addEventListener('click', () => showTab(true));
 $('#tab-register').addEventListener('click', () => showTab(false));
 
@@ -292,6 +314,75 @@ $('#register-form').addEventListener('submit', async (e) => {
   } catch (err) { $('#auth-msg').textContent = err.message; }
 });
 
+/* ---------- Forgot / reset password ---------- */
+$('#forgot-link').addEventListener('click', () => {
+  const typed = $('#l-email').value.trim();
+  showAuthView('forgot');
+  if (typed) $('#f-email').value = typed;
+  $('#f-email').focus();
+});
+document.querySelectorAll('[data-back="login"]').forEach((b) => b.addEventListener('click', () => {
+  if (recovering) { recovering = false; try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+  showAuthView('login');
+}));
+
+let forgotTimer;
+function startCooldown(secs) { // stops people from pressing "send" again and again
+  const btn = $('#f-send');
+  let left = secs;
+  clearInterval(forgotTimer);
+  btn.disabled = true; btn.textContent = 'Send again in ' + left + 's';
+  forgotTimer = setInterval(() => {
+    left -= 1;
+    if (left <= 0) { clearInterval(forgotTimer); btn.disabled = false; btn.textContent = 'Send reset link'; }
+    else btn.textContent = 'Send again in ' + left + 's';
+  }, 1000);
+}
+$('#forgot-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = $('#f-email').value.trim();
+  if (location.protocol === 'file:') { $('#auth-msg').textContent = 'Password reset only works on your website address (http or https), not when the file is opened from your computer.'; return; }
+  $('#f-send').disabled = true;
+  $('#auth-msg').textContent = 'Sending...';
+  try {
+    await api('forgot', { email });
+    // Same message whether or not the email has an account, so nobody can use this form to find out who is registered
+    $('#auth-msg').textContent = 'If ' + email + ' has an account, a reset link is on its way. Check your inbox and your spam folder. The link works for 1 hour.';
+    startCooldown(60);
+    $('#auth-msg').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); // on a small phone the message can be below the screen
+  } catch (err) {
+    $('#f-send').disabled = false;
+    $('#auth-msg').textContent = /rate limit|only request this after/i.test(err.message) ? 'Too many requests. Please wait a minute and try again. (' + err.message + ')' : err.message;
+  }
+});
+
+function showReset() { // the visitor clicked the link in the email
+  document.body.classList.remove('in');
+  $('#app').hidden = true;
+  $('#auth').hidden = false;
+  showAuthView('reset');
+  window.scrollTo({ top: 0 });
+  $('#n-pass').focus();
+}
+if (sb) sb.auth.onAuthStateChange((ev) => { if (ev === 'PASSWORD_RECOVERY') { recovering = true; showReset(); } });
+$('#n-pass').addEventListener('input', (e) => checkPassword(e.target.value, '#pw-rules3'));
+$('#reset-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const next = $('#n-pass').value, rep = $('#n-rep').value;
+  if (!checkPassword(next, '#pw-rules3')) { $('#auth-msg').textContent = 'Your password does not meet all the requirements yet.'; return; }
+  if (next !== rep) { $('#auth-msg').textContent = 'The two passwords do not match.'; return; }
+  try {
+    const r = await api('reset', { next });
+    recovering = false;
+    try { history.replaceState(null, '', location.pathname); } catch (err) {}
+    e.target.reset(); checkPassword('', '#pw-rules3');
+    showApp(r.name);
+    toast('Password changed. You are logged in.');
+  } catch (err) {
+    $('#auth-msg').textContent = /same|different/i.test(err.message) ? 'Choose a password you have not used before.' : err.message;
+  }
+});
+
 /* ---------- Google and Facebook sign-in ---------- */
 const socialBtns = () => document.querySelectorAll('.sbtn');
 socialBtns().forEach((b) => b.addEventListener('click', async () => {
@@ -309,6 +400,7 @@ const oauthError = (() => {
   const raw = q.get('error_description') || f.get('error_description') || q.get('error') || f.get('error');
   if (!raw) return '';
   try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  if (/otp_expired|expired|invalid/i.test(raw) && /otp|link|expired/i.test(raw)) return 'That reset link has expired or was already used. Click "Forgot password?" to get a new one.';
   return 'Sign-in did not finish: ' + raw + (/email/i.test(raw) ? ' (Facebook may not have shared an email address. Use an account with an email, or sign up with email.)' : '');
 })();
 
@@ -1186,7 +1278,8 @@ setTimeout(() => $('#auth').classList.add('ready'), 3500); // after the intro, t
 (async () => {
   try {
     const r = await api('me');
-    if (r.name) showApp(r.name); else $('#auth-msg').textContent = oauthError || 'Connected to Supabase ✓';
+    if (r.name && recovering) showReset();
+    else if (r.name) showApp(r.name); else $('#auth-msg').textContent = oauthError || 'Connected to Supabase ✓';
   } catch (err) { $('#auth-msg').textContent = err.message; }
 })();
 
